@@ -1,0 +1,32 @@
+# Semidefinite Programming Entanglement Detection (PPT Criterion)
+
+## Overview
+This project implements a semidefinite programming (SDP) formulation of entanglement detection in bipartite quantum systems using the Positive Partial Transpose (PPT) criterion.
+
+## Theory
+A quantum state ρ is valid if:
+- ρ ⪰ 0 (positive semidefinite)
+- Tr(ρ) = 1
+
+For bipartite systems, separability implies:
+- ρ^{T_B} ⪰ 0
+
+Thus entanglement detection reduces to checking feasibility of an SDP with partial transpose constraints.
+
+## Method
+We formulate:
+- density matrix constraints
+- PPT positivity constraint
+- numerical eigenvalue test
+
+## Tools
+- Python
+- CVXPY
+- NumPy
+
+## Results
+- Bell state detected as entangled (negative eigenvalue of partial transpose)
+- Separable states satisfy PPT condition
+
+## Author
+[Utulor Ndubuisi]

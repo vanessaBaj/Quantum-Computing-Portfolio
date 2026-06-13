@@ -1,0 +1,118 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.sparse import diags
+from scipy.sparse.linalg import eigsh
+import os
+
+os.makedirs("figures", exist_ok=True)
+
+
+# PARAMETERS
+
+N = 1500
+x_min, x_max = -5, 5
+
+x = np.linspace(x_min, x_max, N)
+dx = x[1] - x[0]
+
+# Harmonic oscillator potential
+V = 0.5 * x**2
+
+# SPARSE HAMILTONIAN (IMPORTANT UPGRADE)
+
+
+main_diag = np.ones(N) * (-2.0)
+off_diag = np.ones(N - 1)
+
+laplacian = diags(
+    [main_diag, off_diag, off_diag],
+    [0, -1, 1]
+) / dx**2
+
+H = -(1/2) * laplacian + diags(V, 0)
+
+
+# SOLVE (LOWEST STATES ONLY)
+
+print("Solving sparse eigenvalue problem...")
+
+k = 6  # number of eigenvalues
+energies, states = eigsh(H, k=k, which='SM')
+
+# sort
+idx = np.argsort(energies)
+energies = energies[idx]
+states = states[:, idx]
+
+
+# PRINT ENERGY RESULTS
+
+print("\nENERGY LEVELS:")
+for i in range(k):
+    print(f"E[{i}] = {energies[i]:.6f}")
+
+
+# ANALYTICAL COMPARISON
+
+def theory(n):
+    return n + 0.5
+
+print("\nERROR ANALYSIS:")
+for n in range(k):
+    error = abs(energies[n] - theory(n))
+    print(f"n={n} | error = {error:.6e}")
+
+
+# CONVERGENCE STUDY (KEY RESEARCH FEATURE)
+
+grid_sizes = [200, 400, 800, 1200]
+ground_energies = []
+
+for N_test in grid_sizes:
+    x_test = np.linspace(x_min, x_max, N_test)
+    dx_test = x_test[1] - x_test[0]
+
+    V_test = 0.5 * x_test**2
+
+    laplacian_test = diags(
+        [np.ones(N_test)*(-2), np.ones(N_test-1), np.ones(N_test-1)],
+        [0, -1, 1]
+    ) / dx_test**2
+
+    H_test = -(1/2) * laplacian_test + diags(V_test, 0)
+
+    E_test, _ = eigsh(H_test, k=1, which='SM')
+    ground_energies.append(E_test[0])
+
+
+# PLOT CONVERGENCE
+
+plt.figure(figsize=(8,5))
+plt.plot(grid_sizes, ground_energies, marker='o')
+plt.axhline(0.5, linestyle='--', label="Exact E0 = 0.5")
+
+plt.title("Convergence of Ground State Energy")
+plt.xlabel("Grid Size (N)")
+plt.ylabel("Energy")
+plt.grid()
+plt.legend()
+
+plt.savefig("figures/convergence.png")
+plt.show()
+
+
+# WAVEFUNCTION PLOT
+
+plt.figure(figsize=(10,6))
+
+for n in range(3):
+    psi = states[:, n]
+    psi = psi / np.max(np.abs(psi))
+    plt.plot(x, psi + n, label=f"n={n}")
+
+plt.title("Quantum States (Sparse Solver)")
+plt.grid()
+plt.legend()
+
+plt.savefig("figures/wavefunctions_sparse.png")
+plt.show()

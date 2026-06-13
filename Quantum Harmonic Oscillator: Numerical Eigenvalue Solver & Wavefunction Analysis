@@ -1,0 +1,316 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.sparse import diags
+from scipy.sparse.linalg import eigsh
+import import numpy as np
+import matplotlib.pyplot as plt
+from scipy.sparse import diags
+from scipy.sparse.linalg import eigsh
+import os
+
+
+# PHONE SAVE LOCATION (VISIBLE IN FILE MANAGER)
+
+base_path = "/storage/emulated/0/Documents/QHO_Project"
+
+os.makedirs(base_path + "/figures", exist_ok=True)
+os.makedirs(base_path + "/results", exist_ok=True)
+
+print("Saving to:", base_path)
+
+
+# PARAMETERS
+
+N = 1000
+x_min, x_max = -5, 5
+
+x = np.linspace(x_min, x_max, N)
+dx = x[1] - x[0]
+
+V = 0.5 * x**2
+
+
+# HAMILTONIAN
+
+main_diag = np.ones(N) * (-2.0)
+off_diag = np.ones(N - 1)
+
+laplacian = diags(
+    [main_diag, off_diag, off_diag],
+    [0, -1, 1]
+) / dx**2
+
+H = -(1/2) * laplacian + diags(V, 0)
+
+
+# SOLVE EIGENVALUE PROBLEM
+
+k = 4
+energies, states = eigsh(H, k=k, which='SM')
+
+idx = np.argsort(energies)
+energies = energies[idx]
+states = states[:, idx]
+
+
+# SAVE ENERGIES
+
+np.savetxt(base_path + "/results/energies.txt", energies)
+
+print("\nENERGY LEVELS:")
+for i in range(k):
+    print(f"E[{i}] = {energies[i]:.6f}")
+
+
+# THEORY FUNCTION
+
+def theory(n):
+    return n + 0.5
+
+
+# NODE COUNT FUNCTION
+
+def count_nodes(psi):
+    return np.sum(np.diff(np.sign(psi)) != 0)
+
+node_list = []
+
+
+# WAVEFUNCTION PLOT (NUMERICAL)
+
+plt.figure(figsize=(10,6))
+
+for n in range(3):
+    psi = states[:, n]
+    psi = psi / np.max(np.abs(psi))
+
+    nodes = count_nodes(psi)
+    node_list.append(nodes)
+
+    plt.plot(x, psi + n, label=f"Numerical ψₙ (n={n}, nodes={nodes})")
+
+plt.title("Quantum Harmonic Oscillator: Numerical Wavefunctions")
+plt.xlabel("x")
+plt.ylabel("ψₙ(x) (shifted)")
+plt.grid()
+plt.legend()
+
+plt.savefig(base_path + "/figures/wavefunctions_numerical.png", dpi=300)
+plt.show()
+
+
+# SAVE NODE DATA
+
+np.savetxt(base_path + "/results/nodes.txt", node_list)
+
+
+# HERMITE POLYNOMIALS (THEORY)
+
+def hermite(n, x):
+    if n == 0:
+        return np.ones_like(x)
+    elif n == 1:
+        return 2*x
+    elif n == 2:
+        return 4*x**2 - 2
+    elif n == 3:
+        return 8*x**3 - 12*x
+
+plt.figure(figsize=(10,6))
+
+for n in range(3):
+    Hn = hermite(n, x)
+    Hn = Hn / np.max(np.abs(Hn))
+
+    plt.plot(x, Hn + n, '--', label=f"Theory Hₙ(x), n={n}")
+
+plt.title("Hermite Polynomial Structure (Analytical Solution)")
+plt.xlabel("x")
+plt.ylabel("Hₙ(x) (scaled & shifted)")
+plt.grid()
+plt.legend()
+
+plt.savefig(base_path + "/figures/hermite_polynomials.png", dpi=300)
+plt.show()
+
+
+# PROBABILITY DENSITY
+
+plt.figure(figsize=(10,6))
+
+for n in range(3):
+    psi = states[:, n]
+    prob = psi**2
+
+    plt.plot(x, prob, label=f"n={n}")
+
+plt.title("Probability Density |ψₙ(x)|²")
+plt.xlabel("x")
+plt.ylabel("Probability Density")
+plt.grid()
+plt.legend()
+
+plt.savefig(base_path + "/figures/probability_density.png", dpi=300)
+plt.show()
+
+
+# FINAL SUMMARY
+
+print("\nSUMMARY")
+for i in range(3):
+    print(f"n={i} | nodes = {node_list[i]} | energy = {energies[i]:.6f}")
+
+print("\nDONE ✔ All results saved to phone storage.")Quantum Harmonic Oscillator: Numerical Eigenvalue Solver & Wavefunction AnalysisQuantum Harmonic Oscillator: Numerical Eigenvalue Solver & Wavefunction Analysis
+
+
+# PHONE SAVE LOCATION (VISIBLE IN FILE MANAGER)
+
+base_path = "/storage/emulated/0/Documents/QHO_Project"
+
+os.makedirs(base_path + "/figures", exist_ok=True)
+os.makedirs(base_path + "/results", exist_ok=True)
+
+print("Saving to:", base_path)
+
+
+# PARAMETERS
+
+N = 1000
+x_min, x_max = -5, 5
+
+x = np.linspace(x_min, x_max, N)
+dx = x[1] - x[0]
+
+V = 0.5 * x**2
+
+
+# HAMILTONIAN
+
+main_diag = np.ones(N) * (-2.0)
+off_diag = np.ones(N - 1)
+
+laplacian = diags(
+    [main_diag, off_diag, off_diag],
+    [0, -1, 1]
+) / dx**2
+
+H = -(1/2) * laplacian + diags(V, 0)
+
+
+# SOLVE EIGENVALUE PROBLEM
+
+k = 4
+energies, states = eigsh(H, k=k, which='SM')
+
+idx = np.argsort(energies)
+energies = energies[idx]
+states = states[:, idx]
+
+
+# SAVE ENERGIES
+
+np.savetxt(base_path + "/results/energies.txt", energies)
+
+print("\nENERGY LEVELS:")
+for i in range(k):
+    print(f"E[{i}] = {energies[i]:.6f}")
+
+
+# THEORY FUNCTION
+
+def theory(n):
+    return n + 0.5
+
+
+# NODE COUNT FUNCTION
+
+def count_nodes(psi):
+    return np.sum(np.diff(np.sign(psi)) != 0)
+
+node_list = []
+
+
+# WAVEFUNCTION PLOT (NUMERICAL)
+
+plt.figure(figsize=(10,6))
+
+for n in range(3):
+    psi = states[:, n]
+    psi = psi / np.max(np.abs(psi))
+
+    nodes = count_nodes(psi)
+    node_list.append(nodes)
+
+    plt.plot(x, psi + n, label=f"Numerical ψₙ (n={n}, nodes={nodes})")
+
+plt.title("Quantum Harmonic Oscillator: Numerical Wavefunctions")
+plt.xlabel("x")
+plt.ylabel("ψₙ(x) (shifted)")
+plt.grid()
+plt.legend()
+
+plt.savefig(base_path + "/figures/wavefunctions_numerical.png", dpi=300)
+plt.show()
+
+# SAVE NODE DATA
+
+np.savetxt(base_path + "/results/nodes.txt", node_list)
+
+
+# HERMITE POLYNOMIALS (THEORY)
+
+def hermite(n, x):
+    if n == 0:
+        return np.ones_like(x)
+    elif n == 1:
+        return 2*x
+    elif n == 2:
+        return 4*x**2 - 2
+    elif n == 3:
+        return 8*x**3 - 12*x
+
+plt.figure(figsize=(10,6))
+
+for n in range(3):
+    Hn = hermite(n, x)
+    Hn = Hn / np.max(np.abs(Hn))
+
+    plt.plot(x, Hn + n, '--', label=f"Theory Hₙ(x), n={n}")
+
+plt.title("Hermite Polynomial Structure (Analytical Solution)")
+plt.xlabel("x")
+plt.ylabel("Hₙ(x) (scaled & shifted)")
+plt.grid()
+plt.legend()
+
+plt.savefig(base_path + "/figures/hermite_polynomials.png", dpi=300)
+plt.show()
+
+
+# PROBABILITY DENSITY
+
+plt.figure(figsize=(10,6))
+
+for n in range(3):
+    psi = states[:, n]
+    prob = psi**2
+
+    plt.plot(x, prob, label=f"n={n}")
+
+plt.title("Probability Density |ψₙ(x)|²")
+plt.xlabel("x")
+plt.ylabel("Probability Density")
+plt.grid()
+plt.legend()
+
+plt.savefig(base_path + "/figures/probability_density.png", dpi=300)
+plt.show()
+
+
+# FINAL SUMMARY
+
+print("\nSUMMARY")
+for i in range(3):
+    print(f"n={i} | nodes = {node_list[i]} | energy = {energies[i]:.6f}")
+
+print("\nDONE ✔ All results saved to system storage.")Quantum Harmonic Oscillator: Numerical Eigenvalue Solver & Wavefunction AnalysisQuantum Harmonic Oscillator: Numerical Eigenvalue Solver & Wavefunction Analysis

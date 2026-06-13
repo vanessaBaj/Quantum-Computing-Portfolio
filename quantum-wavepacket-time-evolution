@@ -1,0 +1,101 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+
+# SAVE DIRECTORY
+
+base_path = "/storage/emulated/0/Download/QHO_TimeEvolution"
+
+frames_path = base_path + "/frames"
+
+os.makedirs(frames_path, exist_ok=True)
+
+print("Saving to:", base_path)
+
+
+# GRID
+
+N = 128   # reduced for phone stability
+
+x = np.linspace(-10, 10, N)
+dx = x[1] - x[0]
+
+# momentum grid
+p = np.fft.fftfreq(N, d=dx) * 2 * np.pi
+
+# harmonic potential
+V = 0.5 * x**2
+
+
+# INITIAL WAVE PACKET
+
+x0 = 0
+sigma = 1
+p0 = 2
+
+psi = np.exp(-(x - x0)**2 / (2*sigma**2)) * np.exp(1j * p0 * x)
+
+# normalize
+psi = psi / np.sqrt(np.sum(np.abs(psi)**2))
+
+
+# TIME SETTINGS
+
+dt = 0.05
+steps = 30   # reduced for stability
+
+print("Running evolution...")
+
+
+# CREATE SINGLE FIGURE
+
+fig, ax = plt.subplots(figsize=(7,4))
+
+
+# TIME EVOLUTION
+
+for t in range(steps):
+
+    # half potential step
+    psi = psi * np.exp(-1j * V * dt / 2)
+
+    # kinetic step
+    psi_p = np.fft.fft(psi)
+    psi_p = psi_p * np.exp(-1j * (p**2 / 2) * dt)
+    psi = np.fft.ifft(psi_p)
+
+    # second half potential step
+    psi = psi * np.exp(-1j * V * dt / 2)
+
+    # normalize
+    psi = psi / np.sqrt(np.sum(np.abs(psi)**2))
+
+    # probability density
+    prob = np.abs(psi)**2
+
+    # clear previous plot
+    ax.clear()
+
+    # plot
+    ax.plot(x, prob)
+
+    ax.set_title(f"Quantum Evolution t = {t*dt:.2f}")
+    ax.set_xlabel("x")
+    ax.set_ylabel("|ψ(x,t)|²")
+
+    ax.grid()
+
+    # save frame
+    fig.savefig(
+        frames_path + f"/frame_{t:03d}.png",
+        dpi=100
+    )
+
+    print(f"Saved frame {t}")
+
+plt.close()
+
+print("\nDONE ✔")
+print("Frames saved in:")
+print(base_path)
